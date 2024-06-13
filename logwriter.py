@@ -32,6 +32,13 @@ class LogWriterCLI:
         logs = query.all()
         db.close()
         return logs
+    
+def is_date(value, date_format="%d.%m.%Y"):
+    try:
+        datetime.strptime(value, date_format)
+        return True
+    except ValueError:
+        return False
 
 @click.group()
 def cli():
@@ -61,33 +68,38 @@ def cli(args):
         status = None
 
 
-        if len(args) >= 1:
-            try:
-                start_date = datetime.strptime(args[0], "%d.%m.%Y")
-            except ValueError:
-                click.echo("Первый аргумент всегда дата")
-                return
-        if len(args) >= 2 and '.' in args[1]:
-            try:
+        if len(args) >= 1 and is_date(args[0]):
+            start_date = datetime.strptime(args[0], "%d.%m.%Y")
+        else:
+            click.echo("Первый аргумент всегда дата в формате DD.MM.YYYY")
+            return
+        
+        if len(args) >= 2:
+            if is_date(args[1]):
                 end_date = datetime.strptime(args[1], "%d.%m.%Y")
-            except ValueError:
-                pass
-        elif len(args) >= 2:
-            ip = args[1]
+            else:
+                ip = args[1]
+        
         if len(args) == 3:
             if end_date:
                 ip = args[2]
             else:
                 status = args[2]
+        
         if len(args) == 4:
-            end_date = datetime.strptime(args[1], "%d.%m.%Y")
-            ip = args[2]
-            status = args[3]
+            if is_date(args[1]):
+                end_date = datetime.strptime(args[1], "%d.%m.%Y")
+                ip = args[2]
+                status = args[3]
+            else:
+                click.echo("Второй аргумент должен быть датой в формате DD.MM.YYYY")
+                return
 
 
         logs = cli.view_logs(start_date, end_date, ip, status)
         for log in logs:
             print(f"IP: {log.ip}, Date: {log.date}, Request: {log.request}, Status: {log.status}, Size: {log.size}")
+
 
 if __name__ == "__main__":
     cli()
