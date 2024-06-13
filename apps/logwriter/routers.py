@@ -19,8 +19,8 @@ def read_logs_by_ip(ip: str):
     return DatabaseManager.session.query(LogEntry).filter(LogEntry.ip == ip).all()
 
 
-@router.get("/logs/date/{date}", response_model=List[schemas.LogEntryResponse], summary="Получить логи по дате")
-def read_logs_by_date(date: str = Query(..., description="Date in the format dd.mm.yyyy")):
+@router.get("/logs/date/", response_model=List[schemas.LogEntryResponse], summary="Получить логи по дате")
+def read_logs_by_date(date: str = Query(..., description="Формат даты dd.mm.yyyy")):
     try:
         date_obj = datetime.strptime(date, "%d.%m.%Y")
     except ValueError:
@@ -33,7 +33,8 @@ def read_logs_by_date(date: str = Query(..., description="Date in the format dd.
 
 
 @router.get("/logs/date-range/", response_model=List[schemas.LogEntryResponse], summary="Получить логи по временному промежутку")
-def read_logs_by_date_range(start_date: str, end_date: str):
+def read_logs_by_date_range(start_date: str = Query(..., description="Формат даты dd.mm.yyyy"),
+    end_date: str = Query(..., description="Формат даты dd.mm.yyyy")):
     try:
         start_date_obj = datetime.strptime(start_date, "%d.%m.%Y")
     except ValueError:
