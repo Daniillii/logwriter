@@ -60,25 +60,30 @@ def cli(args):
         ip = None
         status = None
 
-        try:
-            if len(args) >= 1:
+
+        if len(args) >= 1:
+            try:
                 start_date = datetime.strptime(args[0], "%d.%m.%Y")
-            if len(args) >= 2 and '.' in args[1]:
+            except ValueError:
+                click.echo("Первый аргумент всегда дата")
+                return
+        if len(args) >= 2 and '.' in args[1]:
+            try:
                 end_date = datetime.strptime(args[1], "%d.%m.%Y")
-            elif len(args) >= 2:
-                ip = args[1]
-            if len(args) == 3:
-                if end_date:
-                    ip = args[2]
-                else:
-                    status = args[2]
-            if len(args) == 4:
-                end_date = datetime.strptime(args[1], "%d.%m.%Y")
+            except ValueError:
+                pass
+        elif len(args) >= 2:
+            ip = args[1]
+        if len(args) == 3:
+            if end_date:
                 ip = args[2]
-                status = args[3]
-        except ValueError:
-            click.echo("Invalid date format. Use DD.MM.YYYY.")
-            return
+            else:
+                status = args[2]
+        if len(args) == 4:
+            end_date = datetime.strptime(args[1], "%d.%m.%Y")
+            ip = args[2]
+            status = args[3]
+
 
         logs = cli.view_logs(start_date, end_date, ip, status)
         for log in logs:
