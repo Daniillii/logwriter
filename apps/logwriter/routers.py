@@ -1,9 +1,10 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 from sqlalchemy import cast, Date
 from apps.logwriter.models import LogEntry
 from config.database import DatabaseManager
 from typing import List
 from apps.logwriter import schemas
+from datetime import datetime
 
 router = APIRouter(tags=['Логи'])
 
@@ -19,18 +20,30 @@ def read_logs_by_ip(ip: str):
 
 
 @router.get("/logs/date/{date}", response_model=List[schemas.LogEntryResponse], summary="Получить логи по дате")
-def read_logs_by_date(date: str):
+def read_logs_by_date(date: str = Query(..., description="Date in the format dd.mm.yyyy")):
+    try:
+        date_obj = datetime.strptime(date, "%d.%m.%Y")
+    except ValueError:
+        return {"error": "Incorrect date format, should be dd.mm.yyyy"}
     return (
         DatabaseManager.session.query(LogEntry)
-        .filter(cast(LogEntry.date, Date) == date)
+        .filter(cast(LogEntry.date, Date) == date_obj)
         .all()
     )
 
 
 @router.get("/logs/date-range/", response_model=List[schemas.LogEntryResponse], summary="Получить логи по временному промежутку")
 def read_logs_by_date_range(start_date: str, end_date: str):
+    try:
+        start_date_obj = datetime.strptime(start_date, "%d.%m.%Y")
+    except ValueError:
+        return {"error": "Incorrect date format, should be dd.mm.yyyy"}
+    try:
+        end_date_obj = datetime.strptime(end_date, "%d.%m.%Y")
+    except ValueError:
+        return {"error": "Incorrect date format, should be dd.mm.yyyy"}
     return (
         DatabaseManager.session.query(LogEntry)
-        .filter(cast(LogEntry.date, Date).between(start_date, end_date))
+        .filter(cast(LogEntry.date, Date).between(start_date_obj, end_date_obj))
         .all()
     )
