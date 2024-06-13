@@ -9,7 +9,7 @@ services:
       - logwriter_db
     container_name: logwriter_back
     ports:
-      - "8099:8000"
+      - "8150:8000"
     volumes:
       - ./media:/app/media
     environment:
